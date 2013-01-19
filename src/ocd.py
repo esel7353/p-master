@@ -4,7 +4,7 @@
 import numpy as np
 import csv 
 import numpy as np
-def open_csv(name,errorfy=False):
+def open_csv(name,errorfy=True):
         class Bunch(object):
           def __init__(self, adict):
             self.__dict__.update(adict)
@@ -24,7 +24,7 @@ def open_csv(name,errorfy=False):
         if errorfy==False:
                 return Bunch(data_)
         else:
-                result={}
+                result=[]
                 variables=[]
                 errors=[]
                 for k in data_.keys():
@@ -33,15 +33,16 @@ def open_csv(name,errorfy=False):
                         else:
                                 errors+=[k]
                 for k in variables:
-                        if k[-3::]!="std":
-                                if "S"+k in errors:
-                                        result[k]=Groesse(k,einheit,data_[k],data_["S"+k])
-                                else:
-                                        result[k]=data_[k]
+                        r=k.split(" in ")
+                        name=r[0]
+                        einheit=r[1]
+                        if "S"+name in errors:
+                                result+=[Groesse(name,einheit,data_[k],data_["S"+k])]
                         else:
-                                ss=np.array(data_[k]).std()
-                                result[k]=er.Errorclass(k,einheit,data_[k],ss)
-                return Bunch(result)
+                                result+=[Groesse(name,einheit,data_[k],np.array(data_[k])*0)]
+                #return Bunch(result)
+                return result
+                
 import sympy as sy
 class Groesse:
         def __init__(self,name,einheit,x,Sx):
@@ -64,6 +65,7 @@ def eval_expr(expr,variables,container):
                 vals["S"+k.name]=k.Sx
         #x = expr.evalf(subs=vals)
         f=lambdify(tuple(vals.keys()),expr)
+        print vals.keys()
         x = f(**vals)
         print x
         #little workaround
