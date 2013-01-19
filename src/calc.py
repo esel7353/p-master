@@ -44,7 +44,7 @@ class MathObject:
     def __mul__(self, operand):
         return Product([self, operand])
       
-    def __truediv__(self, operand):
+    def __div__(self, operand):
         return Product([self], [operand]) 
     
     def __pow__(self, exponent):
