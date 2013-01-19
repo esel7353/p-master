@@ -2,8 +2,8 @@ import numpy as np
 import sympy as sy
 class Groesse:
         def __init__(self,name,einheit,x,Sx):
-                self.x=float(x)
-                self.Sx=float(Sx)
+                self.x=np.array(x)
+                self.Sx=np.array(Sx)
                 self.name=name
                 self.einheit=einheit
         def __str__(self):
@@ -13,12 +13,15 @@ class Groesse:
 from sympy.parsing.sympy_parser import parse_expr
 import sympy as sy
 import sympy.physics.units as u
+import sympy.utilities.lambdify as lambdify
 def eval_expr(expr,variables,container):
         vals={}
         for k in container:
                 vals[k.name]=k.x
                 vals["S"+k.name]=k.Sx
-        x = expr.evalf(subs=vals)
+        #x = expr.evalf(subs=vals)
+        f=lambdify(tuple(vals.keys()),expr)
+        x = f(**vals)
         print x
         #little workaround
         leer=sy.Symbol("leer")
@@ -28,7 +31,9 @@ def eval_expr(expr,variables,container):
                 f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())
         f=sy.sqrt(f)
         print f
-        Sx= f.evalf(subs=vals)
+        #Sx= f.evalf(subs=vals)
+        gf = lambdify(tuple(vals.keys()),f)
+        Sx = gf(**vals)
         print x,"+-",Sx
         #units
         unit_dict={}
