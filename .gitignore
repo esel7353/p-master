@@ -7,6 +7,10 @@
 *.swp
 *.swo
 
+#eclipse project files
+.project
+.pydevproject
+
 # Packages
 *.egg
 *.egg-info
