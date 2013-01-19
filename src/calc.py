@@ -1,4 +1,17 @@
 
+"""
+TODO list:
+    - implement derivate
+    - implement depentsOn(total)
+    - implement plugin()
+    - implement all trigonometric functions
+    - sum, prod in sigm, pi notaion
+    - comments
+    - namespacees
+"""
+
+
+
 import math
 
 """
@@ -29,7 +42,8 @@ class MathObject:
         pass
     
     """
-    Plugs in numbers for the values.
+    Plugs in numbers for the values in order to evaluate a numerical result.
+    If not every variable can be matched a value this will raise an exception.
     The argument has to be a dictionary. The keys represent the values
     and the values represent the values, which will be plugged in.
     The Return values is an instance of Number.
@@ -267,14 +281,27 @@ class Variable(MathObject):
     def dependsOn(self, var):
         return  var == self.name
     
-    def derivate(self, var):
+    def derivate(self, var, total=False):
         if var == self.name:
             return Number(1)
         else:
             return Number(0)
     
-    
+
+"""
+Representation of sums and differences with finite terms.
+Each term must be explicitly stated.
+"""
 class Sum(MathObject):
+    """
+    First argument is a list of summands and the second
+    argument is a list of subtrahends. This means 
+        Sum( [x,y,z], [a,b,c] )
+    is the representation of
+        x + y + z - a - b - c
+    Sums are be created and modified when the + and -
+    operator is used.
+    """
     def __init__(self, summands=[], subtrahends=[]):
         self.summands   = summands
         self.subtrahends = subtrahends
@@ -291,34 +318,59 @@ class Sum(MathObject):
     def __rsub__(self, operand):
         self.subtrahends.append(operand)
     
+    """
+    Plugs in the values successive in every term if the Sum.
+    The result is a Number()
+    """
     def eval(self, **vars):
         sum=0
         for summand in self.summands:
             sum += summand.eval(**vars)
         for subtrahend in self.subtrahends:
             sum -= subtrahend.eval(**vars)
-        return sum
+        return Number(sum)
+    
+    def repr(self):
+        
+        return "Sum( [" + summands + "] , [" + subtrahends + "] )"
+    
     def str(self, context=C_PARENTH):
         str = ""
-        if context > C_SUM:  str += "("
-        str += self.summands[0].str(C_SUM)
-        for term in self.summands[1:]:
-            str += " + " + term.str()
+        
+        if context > C_SUM:  str += "("     # add parenthesis if the context is higher than a sum, e.g. a product
+        
+        # add summands if exists
+        if len(self.summands) > 0:
+            str += self.summands[0].str(C_SUM)
+            for term in self.summands[1:]:
+                str += " + " + term.str()
+        
+        # add subtrahends
+        # there might be a leading minus sign, but this is ok: -5+3
         for term in self.subtrahends:
             str += " - " + term.str(C_SUM)
-        if context > C_SUM:  str += ")"
+            
+        if context > C_SUM:  str += ")"     # add parenthesis if the context is higher than a sum, e.g. a product
+        
         return str
     
     def latex(self, context=C_PARENTH):
         str = ""
-        if context > C_SUM:  str += "\\left("
-        str += self.summands[0].latex()
-        for term in self.summands[1:]:
-            str += " + " + term.latex(C_SUM)
+        
+        if context > C_SUM:  str += "\\left("   # add parenthesis if the context is higher than a sum, e.g. a product
+        
+        if len(self.summands) > 0:
+            str += self.summands[0].latex()
+            for term in self.summands[1:]:
+                str += " + " + term.latex(C_SUM)
+                
         for term in self.subtrahends:
             str += " - " + term.latex(C_SUM)
-        if context > C_SUM:  str += "\\right)"
+            
+        if context > C_SUM:  str += "\\right)"  # add parenthesis if the context is higher than a sum, e.g. a product
+        
         return str
+    
     def dependsOn(self, var):
         for summand in self.summands:
             if summand.dependsOn(var): return True
