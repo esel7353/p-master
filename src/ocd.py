@@ -1,5 +1,5 @@
 #usage: 
-# x = open_csv("table1.csv")
+# x = open_csv("tables/table1.csv")
 # now all the variables are stored in x
 import numpy as np
 import csv 
