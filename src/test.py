@@ -6,4 +6,5 @@ s1=sy.Symbol("s1")
 s2=sy.Symbol("s2")
 q=sy.Symbol("q")
 f=(s1/t + s2/t )*q
-ocd.eval_expr(f,[t,s1,s2,q],Werte)
+test=ocd.eval_expr(f,[t,s1,s2,q],Werte,"test")
+print str(test)
