@@ -3,12 +3,16 @@ class Table:
     def __init__(self):
         self.data
         self.usedFormulas = []
-        
+        self.environment  = Environment()
+
     def latex(self, includeFormula=True):
         pass
     
-    def readFromFile(fileName):
-        pass
+    def autofill():
+	pass
+
+    def createFromFile(fileName):
+        return Table()   
     
 class Plot:
     def __init__(self, caption):
@@ -17,6 +21,7 @@ class Plot:
         self.imageName      = ""
         self.usedFormulas   = []
         self.name           = ""
+	self.environment    = Environment()
     
     def makeImage(self):
         pass
@@ -30,8 +35,8 @@ class Plot:
         out += "\\end{figure}" 
         return out
     
-    def readFromFile(fileName):
-        pass
+    def createFromFile(fileName):
+        return Plot()
     
 
         
@@ -46,11 +51,14 @@ class Environment:
         
     def addTable(self, name, table):
         self.tables[name] = table
-        
+        table.name        = name
+        table.environment = self
+
     def addPlot(self, name, plot):
         self.plots[name] = plot
-        plot.name         = name
-        
+        plot.name        = name
+        plot.environment = self
+
     def addFormula(self, name, formula):
         self.formulas[name] = formula    
     
