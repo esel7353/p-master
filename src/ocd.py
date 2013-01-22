@@ -53,7 +53,6 @@ class Groesse:
                 return str(self.x)+" +- "+str(self.Sx)
         def __repr__(self):
                 return self.__str__()
-from sympy.parsing.sympy_parser import parse_expr
 import sympy as sy
 import sympy.utilities.lambdify as lambdify
 def eval_expr(expr,variables,container,name):
