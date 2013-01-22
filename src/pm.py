@@ -12,11 +12,24 @@ def runPython(*args):
         return
     if len(args) == 2:
         exec(args[1], ns)
-def printPlot(name):
-    print env.getPlot(name).latex()
-def printTable(name):
-    print env.getTable(name).latex()
-def printFormula(name):
+
+def printPlot(*args):
+    if len(args) == 1:
+        print env.getPlot(name).latex()
+    if len(args) == 2:
+        p = Plot.createFromText(args[1])
+        env.addPlot(args[0], p)
+        print p.latex()
+
+def printTable(*args):
+    if len(args) == 1:
+        print env.getTable(name).latex()
+    if len(args) == 2:
+        t = Table.createFromText(args[1])
+        env.addTable(args[0], t)
+        print t.latex()
+
+def printFormula(*args):
     pass
 def printMean(arg):
     pass
@@ -33,12 +46,12 @@ env = Environment()
 ###############################################################
 # build in marker
 markerTypes = {}
-markerTypes['PY'] 	= runPython
-markerTypes['PLOT']	= printPlot
-markerTypes['TABLE']	= printTable
-markerTypes['FORMULA']  = printFormula
-markerTypes['MEAN']     = printMean
-markerTypes['LINREG']   = printLinReg
+markerTypes['PY'] 	    = runPython     #single and multi line
+markerTypes['PLOT']	    = printPlot     #single and multi line
+markerTypes['TABLE']	= printTable    #single and multi line
+markerTypes['FORMULA']  = printFormula  #single and multi line
+markerTypes['MEAN']     = printMean     #single line only
+markerTypes['LINREG']   = printLinReg   #single line only
 
 ###############################################################
 # load fuc
