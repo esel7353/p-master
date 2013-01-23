@@ -30,9 +30,9 @@ class Table:
         for name  in names:
             out[name]=[]
         for row in data:
-            for index in xrange(len(names))
+            for index in xrange(len(names)):
                 try:
-                    number = float(str(row[index)))
+                    number = float(str(row[index]))
                     out[names[index]].append(number)
                 except:
                     pass
@@ -53,7 +53,7 @@ class Plot:
         self.imageName      = ""
         self.usedFormulas   = []
         self.name           = ""
-	    self.environment    = Environment()
+	self.environment    = Environment()
     
     def makeImage(self):
         pass

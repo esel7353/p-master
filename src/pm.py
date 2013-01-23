@@ -11,11 +11,13 @@ def runPython(*args):
         execfile(args[0], ns)
         return
     if len(args) == 2:
-        exec(args[1], ns)
+	asd= args[1].replace("\r", "")
+	print >>stdout, repr(asd)
+        exec(asd, ns)
 
 def printPlot(*args):
     if len(args) == 1:
-        print env.getPlot(name).latex()
+        print env.getPlot(args[0]).latex()
     if len(args) == 2:
         p = Plot.createFromText(args[1])
         env.addPlot(args[0], p)
@@ -23,7 +25,7 @@ def printPlot(*args):
 
 def printTable(*args):
     if len(args) == 1:
-        print env.getTable(name).latex()
+        print env.getTable(args[0]).latex()
     if len(args) == 2:
         t = Table.createFromText(args[1])
         env.addTable(args[0], t)
@@ -129,6 +131,9 @@ for file in rawFiles:
         markerTypes[marker](arg, content)
 
 print >>stdout, "\nIn total ", len(done), " .tex files created!"
+
+###############################################################
+# make pdf
 
 for tex in done:
     pdfout = os.popen("pdflatex -interaction=nonstopmode " + os.path.abspath(tex) , 'r')
