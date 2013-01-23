@@ -48,6 +48,8 @@ class Groesse:
                 from quantities import *
                 self.x=np.array(x)*eval(einheit)
                 self.Sx=np.array(Sx)*eval(einheit)
+		self.x=self.x.simplified
+		self.Sx=self.Sx.simplified
                 self.name=name
         def __str__(self):
                 return str(self.x)+" +- "+str(self.Sx)
@@ -61,7 +63,7 @@ def eval_expr(expr,variables,container,name):
                 vals[k.name]=k.x
                 vals["S"+k.name]=k.Sx
         #x = expr.evalf(subs=vals)
-        f=lambdify(tuple(vals.keys()),expr)
+        f=lambdify(tuple(vals.keys()),expr,"numpy")
         x = f(**vals)
         #little workaround
         leer=sy.Symbol("leer")
@@ -71,6 +73,6 @@ def eval_expr(expr,variables,container,name):
                 f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
         f=sy.sqrt(f)
         #Sx= f.evalf(subs=vals)
-        gf = lambdify(tuple(vals.keys()),f)
+        gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
         return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
