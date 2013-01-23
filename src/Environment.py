@@ -1,14 +1,50 @@
 
 class Table:
     def __init__(self):
-        self.data
+        self.rawData      = {}
+        self.names        = []
+        self.values       = {}
         self.usedFormulas = []
-        
+        self.environment  = Environment()
+
     def latex(self, includeFormula=True):
         pass
+
     
-    def readFromFile(fileName):
+    def autofill(self):
         pass
+
+    def update(self):
+        self.autofill()
+
+    def createFromText(csv):
+        import csv 
+        import errorclass as er
+        
+        table = Table()
+
+        data  = csv.reader(csv, delimiter=",", quotechar="\"", escapechar="\\")
+        names = data.next()
+        
+        out = {}
+        for name  in names:
+            out[name]=[]
+        for row in data:
+            for index in xrange(len(names)):
+                try:
+                    number = float(str(row[index]))
+                    out[names[index]].append(number)
+                except:
+                    pass
+        
+        table.rawData = out
+        table.update()
+        return table
+
+    def createFromFile(fileName):
+        with open(filename, "rb") as f:
+            csv = f.readLines()
+            return Table.createFromText(csv)
     
 class Plot:
     def __init__(self, caption):
@@ -17,6 +53,7 @@ class Plot:
         self.imageName      = ""
         self.usedFormulas   = []
         self.name           = ""
+	self.environment    = Environment()
     
     def makeImage(self):
         pass
@@ -30,8 +67,11 @@ class Plot:
         out += "\\end{figure}" 
         return out
     
-    def readFromFile(fileName):
-        pass
+    def createFromText(text):
+        return Plot()
+
+    def createFromFile(fileName):
+        return Plot()
     
 
         
@@ -46,11 +86,15 @@ class Environment:
         
     def addTable(self, name, table):
         self.tables[name] = table
-        
+        table.name        = name
+        table.environment = self
+        table.update()
+
     def addPlot(self, name, plot):
         self.plots[name] = plot
-        plot.name         = name
-        
+        plot.name        = name
+        plot.environment = self
+
     def addFormula(self, name, formula):
         self.formulas[name] = formula    
     
