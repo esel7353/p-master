@@ -1,0 +1,7 @@
+alpha in degree,r_oben in cm,r_unten in cm,s_oben in cm,s_unten in cm,I in A,U in V,alpha_offset in degree,Sr_oben in cm,Sr_unten in cm,Ss_oben in cm,Ss_unten in cm,SI in A,SU in V,Salpha_offset in degree,Salpha in degree
+2,12.2,5.1,0,0,1.5,168,2,0.2,0.2,0.3,0.3,0.001,4,0.5,0.5
+5,13.3,5,9.2,8,,,,,,,,,,,
+10,12.1,5.2,9.6,7.7,,,,,,,,,,,
+15,11.8,5.4,10.5,8.3,,,,,,,,,,,
+20,11.7,5.5,12,8.6,,,,,,,,,,,
+12.5,12,5.3,10.1,7.9,,,,,,,,,,,

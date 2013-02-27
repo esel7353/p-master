@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #usage: 
 # x = open_csv("tables/table1.csv")
 # now all the variables are stored in x
@@ -35,7 +36,7 @@ def open_csv(name,errorfy=True):
                         r=k.split(" in ")
                         name=r[0]
                         einheit=r[1]
-                        if "S"+name in errors:
+                        if "S"+k in errors:
                                 result+=[Groesse(name,einheit,data_[k],data_["S"+k])]
                         else:
                                 result+=[Groesse(name,einheit,data_[k],np.array(data_[k])*0)]
@@ -72,7 +73,25 @@ def eval_expr(expr,variables,container,name):
         for k in variables:
                 f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
         f=sy.sqrt(f)
+	print f
         #Sx= f.evalf(subs=vals)
         gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
         return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
+import matplotlib.pyplot as plt
+import mylib as mm
+def plot_groessen(A,B):
+	(a,b,Sa,Sb,Sy)=mm.gerade(A.x,B.x)
+	t=np.linspace(min(A.x),max(A.x),1000)
+		
+	plt.figure()
+	plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
+	plt.ylabel(B.name+" ("+str(B.x.dimensionality)+")")
+	plt.errorbar(A.x,B.x,xerr=A.Sx,yerr=B.Sx, fmt=".")
+	plt.plot(t,b*t+a)
+	plt.plot(t,(b+Sb)*t+a+Sa,"m--")
+	plt.plot(t,(b-Sb)*t+a-Sa,"c--")
+	plt.legend([ur"Messwerte",ur"Ausgleichsgerade $a+b\cdot l$",ur"Obere Grenze $a+Sa+(b+Sb)\cdot l$",ur"Untere Grenze $a-Sa+(b-Sb)\cdot l$"],loc=2)
+	
+	plt.grid()
+	plt.show()	
