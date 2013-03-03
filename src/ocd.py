@@ -60,7 +60,7 @@ class Groesse:
                 return str(self.x)+" +- "+str(self.Sx)
         def __repr__(self):
                 return self.__str__()
-def eval_expr(expr,variables,container,name):
+def eval_expr(expr,variables,container,name,give_formula=False):
         vals={}
         for k in container:
                 vals[k.name]=k.x
@@ -85,13 +85,17 @@ def eval_expr(expr,variables,container,name):
         #print ur"\end{equation}"
         gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
-        return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
+	if give_formula==True:
+		return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
+	else:
+		return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
+		
 def table_groesse(expr,variables,container,name,formula=False):
-        (X,expr,Sexpr)=eval_expr(expr,variables,container,name)
-        x=ur"\bigskip"
+        (X,expr,Sexpr)=eval_expr(expr,variables,container,name,True)
+        x=ur"\vspace{3 mm} "
         if formula==True:
-                x+=ur"\begin{equation*} "+name+" = "+sy.latex(expr)+"\end{equation*}"
-                x+=ur"\begin{equation*} S"+name+" = "+sy.latex(Sexpr)+"\end{equation*}"
+                x+=ur" "+name+" = "+sy.latex(expr)+ur"\\"
+                x+=ur"S"+name+" = "+sy.latex(Sexpr)+ur"\\"
         s=ur""
         s2=ur""
         if X.x.dimensionality.string != "dimensionless":
@@ -109,13 +113,12 @@ def table_groesse(expr,variables,container,name,formula=False):
         for k in X.Sx.magnitude:
                 s+="& %.3f " % k
         s+=ur"\\ \hline"       
-        x+=ur"""\normalsize
+        x+=ur"""\normalsize \vspace{3 mm}
 	\begin{tabular}{| l | """+s2+"""}
 	\hline
         """+s+ur"""
-	\end{tabular} \\ \bigskip
-	"""
-        return x
+	\end{tabular} \\ \bigskip """
+	return x
 def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	f = open(innername,"w")
 	f.write(s)	
@@ -123,36 +126,38 @@ def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	import subprocess
 	subprocess.call(["pdflatex",layername])
 
-def plot_var(expr1,expr2,variables,container):
+def plot_var(expr1,expr2,variables,container,fitted=False):
         groesse1=eval_expr(expr1,variables,container,"dummy1")
         if expr2!=0:
                 groesse2=eval_expr(expr2,variables,container,"dummy2")
-                plot_groessen(groesse1,groesse2)
+                return plot_groessen(groesse1,groesse2,fitted=fitted)
         else:
-                plot_groessen(groesse1)
+                return plot_groessen(groesse1)
 
-def plot_groessen(A,B=0):
-        plt.figure()
+def plot_groessen(A,B=0,fitted=False):
         X=A.x.magnitude
         plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
+	plt.grid(True,which="majorminor",ls="-", color='0.65')
         SX=A.Sx.magnitude
         print X,SX
         if B!=0:
                 Y=B.x.magnitude
                 SY=B.Sx.magnitude
-                (a,b,Sa,Sb,Sy)=gerade(X,Y)
-                t=np.linspace(min(X),max(Y),1000)
-                        
                 plt.ylabel(B.name+" ("+str(B.x.dimensionality)+")")
-                plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
-                plt.plot(t,b*t+a)
-                plt.plot(t,(b+Sb)*t+a+Sa,"m--")
-                plt.plot(t,(b-Sb)*t+a-Sa,"c--")
-                plt.legend([ur"Messwerte",ur"Ausgleichsgerade $a+b\cdot l$",ur"Obere Grenze $a+Sa+(b+Sb)\cdot l$",ur"Untere Grenze $a-Sa+(b-Sb)\cdot l$"],loc=2)
+
+		plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
+		if fitted==True:
+			(a,b,Sa,Sb,Sy)=gerade(X,Y)
+			t=np.linspace(min(X),max(Y),1000)
+			plt.plot(t,b*t+a)
+			plt.plot(t,(b+Sb)*t+a+Sa,"m--")
+			plt.plot(t,(b-Sb)*t+a-Sa,"c--")
+			return (a,b,Sa,Sb,Sy)	
+		else:
+			return True
         else:
                 plt.errorbar(range(len(X)),X,yerr=SX )
-	plt.grid()
-	plt.show()	
+		return True
 def gerade(x,y):
     x=np.array(x)
     y=np.array(y)

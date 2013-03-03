@@ -1,0 +1,42 @@
+        plt.show()                                             |                s+="& %.3f " % k
+                                                               |                s2+="r|"
+#plot_gbe(ex1,0.08)                                            |        s+=ur"\\ \hline "
+#plot_gbe(ex2,0.0574)                                          |        if X.Sx.dimensionality.string!= "dimensionless":
+#plot_gbe(ex3,0.0574)                                          |                s+="S"+name+" in "+str(X.Sx.dimensionality.stri
+                                                               |ng)
+def write_table(ex,f_re):                                      |        else:
+        global inner                                           |                s+="S"+name
+        inner+=ocd.table_groesse(g,var,ex+offsets,"g",True)    |        for k in X.Sx.magnitude:
+        inner+=ocd.table_groesse(b,var,ex+offsets,"b",True)    |                s+="& %.3f " % k
+        inner+=ocd.table_groesse(f,var,ex+offsets,"f",True)    |        s+=ur"\\ \hline"
+        inner+=ocd.table_groesse(beta,var,ex+offsets,ur"beta",T|        x+=ur"""\normalsize \vspace{3 mm}
+rue)                                                           |        \begin{tabular}{| l | """+s2+"""}
+        f_r= ocd.eval_expr(f,var,ex+offsets,"f")               |        \hline
+        f_mean=np.mean(f_r.x.magnitude)                        |        """+s+ur"""
+        f_std=np.std(f_r.x.magnitude)                          |        \end{tabular} \\ \bigskip """
+        inner+=ur"Mittelwert: %.3f\\"%f_mean                   |        return x
+        inner+=ur"Standartabweichung: %.3f\\" % np.std(f_r.x.ma|def write_tex(s,innername="inner.tex",layername="layer.tex"):
+gnitude)                                                       |        f = open(innername,"w")
+        inner+=ur"gemessene Brechkraft: $\phi=\frac{1}{f}=%.3f |        f.write(s)
++- %.3f\\ $"% ((1/f_mean),f_std/f_mean**2)                     |        f.close()
+                                                               |        import subprocess
+        inner+=ur"theoretische Brechkraft: %.3f\\ "% (1/f_re)  |        subprocess.call(["pdflatex",layername])
+                                                               |
+inner=ur"Experiment I \\ "                                     |def plot_var(expr1,expr2,variables,container,fitted=False):
+write_table(ex1,0.08)                                          |        groesse1=eval_expr(expr1,variables,container,"dummy1")
+inner+=ur"Experiment II 1. \\ "                                |        if expr2!=0:
+write_table(ex2,0.0574)                                        |                groesse2=eval_expr(expr2,variables,container,"d
+inner+=ur"Experiment II 2. \\ "                                |ummy2")
+write_table(ex3,0.0574)                                        |                plot_groessen(groesse1,groesse2,fitted=fitted)
+ocd.write_tex(inner)                                           |        else:
+                                                               |                plot_groessen(groesse1)
+B=sy.Symbol("B")                                               |
+B_orginal=sy.Symbol("B_orginal")                               |def plot_groessen(A,B=0,fitted=False):
+b__=sy.Symbol("b__")                                           |        X=A.x.magnitude
+b_=b__+xs                                                      |        plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
+var+=[B,b__]                                                   |        SX=A.Sx.magnitude
+beta=B/B_orginal                                               |        print X,SX
+beta_r=ocd.eval_expr(beta,var,ex4+offsets,"beta")              |        if B!=0:
+                                                               |                Y=B.x.magnitude
+<ng/studyrepo/AP2/versuch70/versuch70.py [+] 78,0-1         91% Programming/p-master/src/ocd.py              143,31         79%
+
