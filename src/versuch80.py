@@ -9,6 +9,9 @@ I=sy.Symbol("I")
 U=sy.Symbol("U")
 alpha_offset=sy.Symbol("alpha_offset")
 alpha=sy.Symbol("alpha")
+var=[s_unten,s_oben,r_oben,I,U,alpha_offset,alpha]
+do =  lambda expr,name: ocd.eval_expr(expr,var,Werte,name)
+plot = lambda expr1,expr2: ocd.plot_var(expr1,expr2,var,Werte)
 
 B=0.78*10**(-3)*I
 import scipy.constants as c
@@ -19,7 +22,5 @@ y=s/(sy.pi*d)
 alpha2=alpha-alpha_offset
 x=sy.tan(alpha2)
 
-x_w=ocd.eval_expr(x,[s_unten,s_oben,r_oben,I,U,alpha_offset,alpha],Werte,"x")
-y_w=ocd.eval_expr(y,[s_unten,s_oben,r_oben,I,U,alpha_offset,alpha],Werte,"y")
+plot(s_oben,s_unten)
 
-ocd.plot_groessen(x_w,y_w)

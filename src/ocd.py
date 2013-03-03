@@ -2,8 +2,12 @@
 #usage: 
 # x = open_csv("tables/table1.csv")
 # now all the variables are stored in x
-import numpy as np
+import matplotlib.pyplot as plt
 import csv 
+import numpy as np
+import sympy as sy
+import sympy.utilities.lambdify as lambdify
+import quantities as qs
 def open_csv(name,errorfy=True):
         class Bunch(object):
           def __init__(self, adict):
@@ -43,21 +47,19 @@ def open_csv(name,errorfy=True):
                 #return Bunch(result)
                 return result
                 
-import sympy as sy
 class Groesse:
         def __init__(self,name,einheit,x,Sx):
-                from quantities import *
-                self.x=np.array(x)*eval(einheit)
-                self.Sx=np.array(Sx)*eval(einheit)
+                self.x=np.array(x)*eval("qs."+einheit)
+                self.Sx=np.array(Sx)*eval("qs."+einheit)
 		self.x=self.x.simplified
 		self.Sx=self.Sx.simplified
+                if len(self.Sx)==1:
+                        self.Sx=self.x*0+self.Sx
                 self.name=name
         def __str__(self):
                 return str(self.x)+" +- "+str(self.Sx)
         def __repr__(self):
                 return self.__str__()
-import sympy as sy
-import sympy.utilities.lambdify as lambdify
 def eval_expr(expr,variables,container,name):
         vals={}
         for k in container:
@@ -73,25 +75,93 @@ def eval_expr(expr,variables,container,name):
         for k in variables:
                 f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
         f=sy.sqrt(f)
-	print f
-        #Sx= f.evalf(subs=vals)
+        #print "Formel:"
+        #print ur"\begin*{equation}"
+        #print sy.latex(expr)
+        #print ur"\end{equation}"
+        #print "Fehler:"
+        #print ur"\begin*{equation}"
+	#print sy.latex(f)
+        #print ur"\end{equation}"
         gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
-        return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
-import matplotlib.pyplot as plt
-import mylib as mm
-def plot_groessen(A,B):
-	(a,b,Sa,Sb,Sy)=mm.gerade(A.x,B.x)
-	t=np.linspace(min(A.x),max(A.x),1000)
-		
-	plt.figure()
-	plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
-	plt.ylabel(B.name+" ("+str(B.x.dimensionality)+")")
-	plt.errorbar(A.x,B.x,xerr=A.Sx,yerr=B.Sx, fmt=".")
-	plt.plot(t,b*t+a)
-	plt.plot(t,(b+Sb)*t+a+Sa,"m--")
-	plt.plot(t,(b-Sb)*t+a-Sa,"c--")
-	plt.legend([ur"Messwerte",ur"Ausgleichsgerade $a+b\cdot l$",ur"Obere Grenze $a+Sa+(b+Sb)\cdot l$",ur"Untere Grenze $a-Sa+(b-Sb)\cdot l$"],loc=2)
-	
+        return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
+def table_groesse(expr,variables,container,name,formula=False):
+        (X,expr,Sexpr)=eval_expr(expr,variables,container,name)
+        x=ur"\bigskip"
+        if formula==True:
+                x+=ur"\begin{equation*} "+name+" = "+sy.latex(expr)+"\end{equation*}"
+                x+=ur"\begin{equation*} S"+name+" = "+sy.latex(Sexpr)+"\end{equation*}"
+        s=ur""
+        s2=ur""
+        if X.x.dimensionality.string != "dimensionless":
+                s+=name+" in "+str(X.x.dimensionality.string)
+        else: 
+                s+=name
+        for k in X.x.magnitude:
+                s+="& %.3f " % k
+                s2+="r|"
+        s+=ur"\\ \hline "
+        if X.Sx.dimensionality.string!= "dimensionless":
+                s+="S"+name+" in "+str(X.Sx.dimensionality.string)
+        else:
+                s+="S"+name
+        for k in X.Sx.magnitude:
+                s+="& %.3f " % k
+        s+=ur"\\ \hline"       
+        x+=ur"""\normalsize
+	\begin{tabular}{| l | """+s2+"""}
+	\hline
+        """+s+ur"""
+	\end{tabular} \\ \bigskip
+	"""
+        return x
+def write_tex(s,innername="inner.tex",layername="layer.tex"):
+	f = open(innername,"w")
+	f.write(s)	
+	f.close()
+	import subprocess
+	subprocess.call(["pdflatex",layername])
+
+def plot_var(expr1,expr2,variables,container):
+        groesse1=eval_expr(expr1,variables,container,"dummy1")
+        if expr2!=0:
+                groesse2=eval_expr(expr2,variables,container,"dummy2")
+                plot_groessen(groesse1,groesse2)
+        else:
+                plot_groessen(groesse1)
+
+def plot_groessen(A,B=0):
+        plt.figure()
+        X=A.x.magnitude
+        plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
+        SX=A.Sx.magnitude
+        print X,SX
+        if B!=0:
+                Y=B.x.magnitude
+                SY=B.Sx.magnitude
+                (a,b,Sa,Sb,Sy)=gerade(X,Y)
+                t=np.linspace(min(X),max(Y),1000)
+                        
+                plt.ylabel(B.name+" ("+str(B.x.dimensionality)+")")
+                plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
+                plt.plot(t,b*t+a)
+                plt.plot(t,(b+Sb)*t+a+Sa,"m--")
+                plt.plot(t,(b-Sb)*t+a-Sa,"c--")
+                plt.legend([ur"Messwerte",ur"Ausgleichsgerade $a+b\cdot l$",ur"Obere Grenze $a+Sa+(b+Sb)\cdot l$",ur"Untere Grenze $a-Sa+(b-Sb)\cdot l$"],loc=2)
+        else:
+                plt.errorbar(range(len(X)),X,yerr=SX )
 	plt.grid()
 	plt.show()	
+def gerade(x,y):
+    x=np.array(x)
+    y=np.array(y)
+    b=np.sum((x-np.mean(x))*y)/sum((x-np.mean(x))**2)
+    a=np.mean(y)-b*np.mean(x)
+    n=len(x)
+    sy=np.sqrt(np.sum((y-b*x-a)**2)/(n-2))
+    sa=sy*np.sqrt(1./n+np.mean(x)**2/np.sum((x-np.mean(x))**2))
+    sb=sy*np.sqrt(1./np.sum((x-np.mean(x))**2))
+    return (a,b,sa,sb,sy)
+
+
