@@ -60,7 +60,7 @@ class Groesse:
                 return str(self.x)+" +- "+str(self.Sx)
         def __repr__(self):
                 return self.__str__()
-def eval_expr(expr,variables,container,name,give_formula=False):
+def eval_expr(expr,variables,container,name):
         vals={}
         for k in container:
                 vals[k.name]=k.x
@@ -85,16 +85,24 @@ def eval_expr(expr,variables,container,name,give_formula=False):
         #print ur"\end{equation}"
         gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
-	if give_formula==True:
-		return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
-	else:
-		return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
-		
+        return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
+def get_error(expr,variables):
+	leer=sy.Symbol("leer")
+        f=0*leer
+
+        for k in variables:
+                f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
+        f=sy.sqrt(f)
+	return f
 def table_groesse(expr,variables,container,name,formula=False):
-        (X,expr,Sexpr)=eval_expr(expr,variables,container,name,True)
-        x=ur"\vspace{3 mm} "
+        (X,expr,Sexpr)=eval_expr(expr,variables,container,name)
+        x=ur"\bigskip"
         if formula==True:
-                x+=ur" "+name+" = "+sy.latex(expr)+ur"\\"
+                x+=ur"\begin{equation*} "+name+" = "+sy.latex(expr)+"\end{equation*}"
+                x+=ur"\begin{equation*} S"+name+" = "+sy.latex(Sexpr)+"\end{equation*}"
+        s=ur""
+        s2=ur""
+        if X.x.dimensionality.string != "dimensionless":
                 x+=ur"S"+name+" = "+sy.latex(Sexpr)+ur"\\"
         s=ur""
         s2=ur""
@@ -165,8 +173,3 @@ def gerade(x,y):
     a=np.mean(y)-b*np.mean(x)
     n=len(x)
     sy=np.sqrt(np.sum((y-b*x-a)**2)/(n-2))
-    sa=sy*np.sqrt(1./n+np.mean(x)**2/np.sum((x-np.mean(x))**2))
-    sb=sy*np.sqrt(1./np.sum((x-np.mean(x))**2))
-    return (a,b,sa,sb,sy)
-
-
