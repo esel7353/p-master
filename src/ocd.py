@@ -89,7 +89,12 @@ def eval_expr(expr,variables,container,name,give_formula=False):
 		return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
 	else:
 		return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
-		
+def get_error(expr,variables):
+        leer=sy.Symbol("leer")
+        f=0*leer
+        for k in variables:
+                f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
+        return sy.sqrt(f)
 def table_groesse(expr,variables,container,name,formula=False):
         (X,expr,Sexpr)=eval_expr(expr,variables,container,name,True)
         x=ur"\vspace{3 mm} "
@@ -117,7 +122,7 @@ def table_groesse(expr,variables,container,name,formula=False):
 	\begin{tabular}{| l | """+s2+"""}
 	\hline
         """+s+ur"""
-	\end{tabular} \\ \bigskip """
+	\end{tabular} \\ """
 	return x
 def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	f = open(innername,"w")
@@ -137,7 +142,7 @@ def plot_var(expr1,expr2,variables,container,fitted=False):
 def plot_groessen(A,B=0,fitted=False):
         X=A.x.magnitude
         plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
-	plt.grid(True,which="majorminor",ls="-", color='0.65')
+	plt.grid(True)
         SX=A.Sx.magnitude
         print X,SX
         if B!=0:
@@ -148,7 +153,7 @@ def plot_groessen(A,B=0,fitted=False):
 		plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
 		if fitted==True:
 			(a,b,Sa,Sb,Sy)=gerade(X,Y)
-			t=np.linspace(min(X),max(Y),1000)
+			t=np.linspace(0,max(Y),1000)
 			plt.plot(t,b*t+a)
 			plt.plot(t,(b+Sb)*t+a+Sa,"m--")
 			plt.plot(t,(b-Sb)*t+a-Sa,"c--")
