@@ -7,7 +7,6 @@ import csv
 import numpy as np
 import sympy as sy
 import sympy.utilities.lambdify as lambdify
-import quantities as qs
 def open_csv(name,errorfy=True):
         class Bunch(object):
           def __init__(self, adict):
@@ -49,8 +48,9 @@ def open_csv(name,errorfy=True):
                 
 class Groesse:
         def __init__(self,name,einheit,x,Sx):
-                self.x=np.array(x)*eval("qs."+einheit)
-                self.Sx=np.array(Sx)*eval("qs."+einheit)
+		from quantities import *
+                self.x=np.array(x)*eval(einheit)
+                self.Sx=np.array(Sx)*eval(einheit)
 		self.x=self.x.simplified
 		self.Sx=self.Sx.simplified
                 if len(self.Sx)==1:
@@ -60,6 +60,10 @@ class Groesse:
                 return str(self.x)+" +- "+str(self.Sx)
         def __repr__(self):
                 return self.__str__()
+	def convert_einheit(self,einheit):
+		from quantities import *
+		self.x.units=eval(einheit)
+		self.Sx.units=eval("qs."+einheit)		
 def eval_expr(expr,variables,container,name):
         vals={}
         for k in container:
@@ -85,16 +89,6 @@ def eval_expr(expr,variables,container,name):
         #print ur"\end{equation}"
         gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
-	if give_formula==True:
-		return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
-	else:
-		return Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude)
-def get_error(expr,variables):
-        leer=sy.Symbol("leer")
-        f=0*leer
-        for k in variables:
-                f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
-        return sy.sqrt(f)
         return (Groesse(name,x.dimensionality.string,x.magnitude,Sx.magnitude),expr,f)
 def get_error(expr,variables):
 	leer=sy.Symbol("leer")
@@ -104,8 +98,10 @@ def get_error(expr,variables):
                 f=f+ (sy.diff(expr,k))**2*sy.Symbol("S"+k.__str__())**2
         f=sy.sqrt(f)
 	return f
-def table_groesse(expr,variables,container,name,formula=False):
+def table_groesse(expr,variables,container,name,formula=False,einheit="default"):
         (X,expr,Sexpr)=eval_expr(expr,variables,container,name)
+	if einheit!="default":
+		X.convert_einheit(einheit)	
         x=ur"\bigskip"
         if formula==True:
                 x+=ur"\begin{equation*} "+name+" = "+sy.latex(expr)+"\end{equation*}"
@@ -135,7 +131,7 @@ def table_groesse(expr,variables,container,name,formula=False):
 	\begin{tabular}{| l | """+s2+"""}
 	\hline
         """+s+ur"""
-	\end{tabular} \\ """
+	\end{tabular} \\ \bigskip """
 	return x
 def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	f = open(innername,"w")
@@ -145,9 +141,9 @@ def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	subprocess.call(["pdflatex",layername])
 
 def plot_var(expr1,expr2,variables,container,fitted=False):
-        groesse1=eval_expr(expr1,variables,container,"dummy1")
+        groesse1=eval_expr(expr1,variables,container,"dummy1")[0];
         if expr2!=0:
-                groesse2=eval_expr(expr2,variables,container,"dummy2")
+                groesse2=eval_expr(expr2,variables,container,"dummy2")[0]
                 return plot_groessen(groesse1,groesse2,fitted=fitted)
         else:
                 return plot_groessen(groesse1)
@@ -155,7 +151,7 @@ def plot_var(expr1,expr2,variables,container,fitted=False):
 def plot_groessen(A,B=0,fitted=False):
         X=A.x.magnitude
         plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
-	plt.grid(True)
+	plt.grid(True,which="majorminor",ls="-", color='0.65')
         SX=A.Sx.magnitude
         print X,SX
         if B!=0:
@@ -166,7 +162,7 @@ def plot_groessen(A,B=0,fitted=False):
 		plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
 		if fitted==True:
 			(a,b,Sa,Sb,Sy)=gerade(X,Y)
-			t=np.linspace(0,max(Y),1000)
+			t=np.linspace(min(X),max(X),1000)
 			plt.plot(t,b*t+a)
 			plt.plot(t,(b+Sb)*t+a+Sa,"m--")
 			plt.plot(t,(b-Sb)*t+a-Sa,"c--")
@@ -183,3 +179,8 @@ def gerade(x,y):
     a=np.mean(y)-b*np.mean(x)
     n=len(x)
     sy=np.sqrt(np.sum((y-b*x-a)**2)/(n-2))
+    sa=sy*np.sqrt(1./n+np.mean(x)**2/np.sum((x-np.mean(x))**2))
+    sb=sy*np.sqrt(1./np.sum((x-np.mean(x))**2))
+    return (a,b,sa,sb,sy)
+
+
