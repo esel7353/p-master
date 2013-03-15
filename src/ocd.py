@@ -140,35 +140,43 @@ def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	import subprocess
 	subprocess.call(["pdflatex",layername])
 
-def plot_var(expr1,expr2,variables,container,fitted=False):
+def plot_var(expr1,expr2,variables,container,fitted=False,poly=0):
         groesse1=eval_expr(expr1,variables,container,"dummy1")[0];
         if expr2!=0:
                 groesse2=eval_expr(expr2,variables,container,"dummy2")[0]
-                return plot_groessen(groesse1,groesse2,fitted=fitted)
+                return plot_groessen(groesse1,groesse2,fitted=fitted,poly=poly)	
         else:
                 return plot_groessen(groesse1)
 
-def plot_groessen(A,B=0,fitted=False):
+def plot_groessen(A,B=0,fitted=False,poly=0):
         X=A.x.magnitude
         plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
 	plt.grid(True,which="majorminor",ls="-", color='0.65')
         SX=A.Sx.magnitude
-        print X,SX
+        print A.x
         if B!=0:
                 Y=B.x.magnitude
                 SY=B.Sx.magnitude
                 plt.ylabel(B.name+" ("+str(B.x.dimensionality)+")")
 
-		plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
+		ax=plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
 		if fitted==True:
-			(a,b,Sa,Sb,Sy)=gerade(X,Y)
-			t=np.linspace(min(X),max(X),1000)
-			plt.plot(t,b*t+a)
-			plt.plot(t,(b+Sb)*t+a+Sa,"m--")
-			plt.plot(t,(b-Sb)*t+a-Sa,"c--")
-			return (a,b,Sa,Sb,Sy)	
+			if poly==0:
+				(a,b,Sa,Sb,Sy)=gerade(X,Y)
+				t=np.linspace(min(X),max(X),1000)
+				plt.plot(t,b*t+a)
+				plt.plot(t,(b+Sb)*t+a+Sa,"m--")
+				plt.plot(t,(b-Sb)*t+a-Sa,"c--")
+				return (a,b,Sa,Sb,Sy)	
+			else:
+				p=np.polyfit(X,Y,poly)
+				t=np.linspace(min(X),max(X),1000)
+				plt.plot(t,np.polyval(p,t))
+				return p
+				
+
 		else:
-			return True
+			return ax
         else:
                 plt.errorbar(range(len(X)),X,yerr=SX )
 		return True
