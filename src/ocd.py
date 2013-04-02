@@ -140,23 +140,27 @@ def write_tex(s,innername="inner.tex",layername="layer.tex"):
 	import subprocess
 	subprocess.call(["pdflatex",layername])
 
-def plot_var(expr1,expr2,variables,container,fitted=False,poly=0):
+def plot_var(expr1,expr2,variables,container,fitted=False,poly=0,choices="0"):
         groesse1=eval_expr(expr1,variables,container,"dummy1")[0];
         if expr2!=0:
                 groesse2=eval_expr(expr2,variables,container,"dummy2")[0]
-                return plot_groessen(groesse1,groesse2,fitted=fitted,poly=poly)	
+                return plot_groessen(groesse1,groesse2,fitted=fitted,poly=poly,choices=choices)	
         else:
                 return plot_groessen(groesse1)
-
-def plot_groessen(A,B=0,fitted=False,poly=0):
-        X=A.x.magnitude
+def plot_deriv_var(expr1,expr2,variables,container):
+        groesse1=eval_expr(expr1,variables,container,"dummy1")[0];
+        groesse2=eval_expr(expr2,variables,container,"dummy2")[0]
+        plot_deriv_groessen(groesse1,groesse2)
+def plot_groessen(A,B=0,fitted=False,poly=0,choices="0"):
+        if choices=="0":
+                choices=range(len(A.x.magnitude))
+        X=A.x.magnitude[choices]
+        SX=A.Sx.magnitude[choices]
         plt.xlabel(A.name+" ("+str(A.x.dimensionality)+")")
 	plt.grid(True,which="majorminor",ls="-", color='0.65')
-        SX=A.Sx.magnitude
-        print A.x
         if B!=0:
-                Y=B.x.magnitude
-                SY=B.Sx.magnitude
+                Y=B.x.magnitude[choices]
+                SY=B.Sx.magnitude[choices]
                 plt.ylabel(B.name+" ("+str(B.x.dimensionality)+")")
 
 		ax=plt.errorbar(X,Y,xerr=SX,yerr=SY, fmt=".")
@@ -180,6 +184,19 @@ def plot_groessen(A,B=0,fitted=False,poly=0):
         else:
                 plt.errorbar(range(len(X)),X,yerr=SX )
 		return True
+def plot_deriv_groessen(A,B=0,fitted=False,poly=0):
+        X=A.x.magnitude
+	plt.grid(True,which="majorminor",ls="-", color='0.65')
+        SX=A.Sx.magnitude
+        print A.x
+        Y=B.x.magnitude
+        SY=B.Sx.magnitude
+        DX=np.ediff1d(X)
+        DY=np.ediff1d(Y)
+        SDX=SX[1:]*np.sqrt(2) # sqrt(2) because of subtraction
+        SDY=SY[1:]*np.sqrt(2) # sqrt(2) because of subtraction
+        SDYY=np.sqrt(SDX**2*DY**2/DX**4+SDY**2/DX**2)
+        ax=plt.errorbar(X[1:], DY/DX,xerr=SX[1:],yerr=SDYY,fmt=".")
 def gerade(x,y):
     x=np.array(x)
     y=np.array(y)
