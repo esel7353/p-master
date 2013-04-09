@@ -31,10 +31,11 @@ def open_csv(name,errorfy=True):
                 variables=[]
                 errors=[]
                 for k in data_.keys():
-                        if k[0]!="S":
-                                variables+=[k]
-                        else:
-                                errors+=[k]
+                        if k[0]!="*":
+                                if k[0]!="S":
+                                        variables+=[k]
+                                else:
+                                        errors+=[k]
                 for k in variables:
                         r=k.split(" in ")
                         name=r[0]
@@ -85,7 +86,7 @@ def eval_expr(expr,variables,container,name):
         #print ur"\end{equation}"
         #print "Fehler:"
         #print ur"\begin*{equation}"
-	#print sy.latex(f)
+	#sy.pprint(f)
         #print ur"\end{equation}"
         gf = lambdify(tuple(vals.keys()),f,"numpy")
         Sx = gf(**vals)
