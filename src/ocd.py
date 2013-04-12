@@ -84,7 +84,7 @@ def eval_expr(expr,variables,container,name):
         #print ur"\begin*{equation}"
         #print sy.latex(expr)
         #print ur"\end{equation}"
-        #print "Fehler:"
+        #print "Fehler"
         #print ur"\begin*{equation}"
 	#sy.pprint(f)
         #print ur"\end{equation}"
